@@ -1,6 +1,6 @@
 // lib/mtgApi.ts
 import axios from 'axios';
-import { Card, CardData } from './cards';
+import { Card, CardData } from '@/app/types';
 
 // Scryfall API のベース URL
 const SCRYFALL_API_BASE = 'https://api.scryfall.com';
@@ -69,7 +69,17 @@ export async function searchCardByName(name: string): Promise<Card | null> {
             params: { exact: name },
         });
 
-        return mapScryfallCardToCard(response.data);
+        if (response.data && response.data.object === 'card') {
+            // カードが見つかった場合、データを変換して返す
+            return mapScryfallCardToCard(response.data);
+        }
+
+        // const response2 = await axios.get(`${SCRYFALL_API_BASE}/cards/named`, {
+        //     params: { fuzzy: name },
+        // });
+        // return mapScryfallCardToCard(response2.data);
+
+        return null; // カードが見つからなかった場合
     } catch (error) {
         // 404 エラーの場合はカードが見つからなかったことを示す
         if (axios.isAxiosError(error) && error.response?.status === 404) {

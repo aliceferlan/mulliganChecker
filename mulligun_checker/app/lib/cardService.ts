@@ -1,6 +1,7 @@
 // lib/cardService.ts
-import { Card, getCardByName, saveCard, searchCards as searchCardsInDb } from './cards';
-import { searchCardByName as searchCardInApi, searchCardsFuzzy } from './mtgAPI';
+import { getCardByName, saveCard, searchCards } from './cards';
+import { searchCardByName, searchCardsFuzzy } from './mtgAPI';
+import { Card } from '@/app/types';
 
 // カードを名前で検索し、見つからなければ API から取得して保存する
 export async function findCardByName(name: string): Promise<Card | null> {
@@ -16,7 +17,7 @@ export async function findCardByName(name: string): Promise<Card | null> {
     console.log(`Card "${name}" not found in database, searching in API...`);
 
     // Redis に存在しない場合は API から取得
-    const cardFromApi = await searchCardInApi(name);
+    const cardFromApi = await searchCardByName(name);
 
     // API でも見つからない場合は null を返す
     if (!cardFromApi) {
@@ -33,9 +34,9 @@ export async function findCardByName(name: string): Promise<Card | null> {
 }
 
 // キーワードでカードを検索し、結果が少なければ API からも取得する
-export async function searchCardsByKeyword(keyword: string, minResults: number = 3): Promise<Card[]> {
+export async function searchCardsByKeyword(keyword: string, minResults: number = 1): Promise<Card[]> {
     // まず Redis から検索
-    const cardsFromDb = await searchCardsInDb(keyword);
+    const cardsFromDb = await searchCards(keyword);
 
     // 十分な結果がある場合はそれを返す
     if (cardsFromDb.length >= minResults) {

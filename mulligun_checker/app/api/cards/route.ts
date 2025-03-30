@@ -1,6 +1,7 @@
 // app/api/cards/route.ts
 import { NextRequest, NextResponse } from 'next/server';
-import { getCards, saveCard, getCardByName, Card } from '@/app/lib/cards';
+import { getCards, saveCard, getCardByName } from '@/app/lib/cards';
+import { Card } from '@/app/types';
 
 // カード一覧の取得
 export async function GET(request: NextRequest) {

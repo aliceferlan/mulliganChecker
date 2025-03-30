@@ -2,7 +2,7 @@
 "use client";
 
 import { useState } from "react";
-import { Card } from "@/app/lib/cards";
+import { Card } from "@/app/types";
 
 export default function SearchPage() {
 	const [searchQuery, setSearchQuery] = useState("");

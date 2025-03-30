@@ -1,6 +1,7 @@
 // lib/cards.ts
 // import redis from './redis';
 import { Redis } from '@upstash/redis'
+import { Card } from '@/app/types' // Card 型をインポート
 
 // 環境変数から接続情報を取得
 const redis = new Redis({
@@ -8,29 +9,6 @@ const redis = new Redis({
     token: process.env.KV_REST_API_TOKEN!,
 })
 
-
-export type CardData = {
-    manaCost?: string;
-    cmc?: number;
-    colors?: string[];
-    colorIdentity?: string[];
-    type?: string;
-    text?: string;
-    power?: string;
-    toughness?: string;
-    imageUrl?: string;
-};
-
-export type Card = {
-    id: string;
-    name: string;
-    rarity?: string;
-    set?: string;
-    flavor?: string;
-    artist?: string;
-    front: CardData;
-    back?: CardData; // 第2面がある場合
-};
 
 // カードを保存する関数
 export async function saveCard(card: Card): Promise<void> {
@@ -82,36 +60,63 @@ export async function getCardByName(name: string): Promise<Card | null> {
 // キーワードによるカードの検索
 export async function searchCards(keyword: string, limit: number = 20): Promise<Card[]> {
     try {
-        const pattern = keyword.toLowerCase();
+        // キーワードを小文字に変換して正規化
+        const normalizedKeyword = keyword.toLowerCase().trim();
 
-        // zrangebylexを直接使用
-        const cardKeys = await redis.zrange(
-            'cardNameIndex',
-            0,
-            limit - 1
-        );
+        // カード名インデックスからカードIDを検索
+        // 完全一致検索の場合
+        const cardId = await redis.get(`cardNameIndex:${normalizedKeyword}`);
 
-        const cards: Card[] = [];
-
-        for (const key of cardKeys) {
-            const parts = (key as string).split(':');
-            if (parts.length === 2) {
-                const cardId = parts[1];
-                const card = await getCardById(cardId);
-                if (card) {
-                    cards.push(card);
-                }
+        if (cardId) {
+            // 特定のカードIDに対応するカードデータを取得
+            const cardData = await redis.get(`card:${cardId}`);
+            if (cardData) {
+                return [JSON.parse(cardData as string)];
             }
         }
 
-        return cards;
-    } catch (error) {
-        console.error('Error in searchCards using zrangebylex:', error);
+        // 完全一致しない場合は、パターンマッチングを使用
+        // SCAN コマンドを使用してキーワードを含むキーを検索
+        const matchingKeys = [];
+        let cursor = 0;
 
-        // フォールバックメソッドを使用
-        return fallbackSearchCards(keyword, limit);
+        do {
+            // SCAN を使用してキーを検索
+            const [nextCursor, keys] = await redis.scan(
+                cursor,
+                { match: `${normalizedKeyword}*` },
+
+            );
+
+            cursor = parseInt(nextCursor);
+            matchingKeys.push(...keys);
+
+            // 指定された制限に達した場合、または全てのキーをスキャンした場合に終了
+            if (matchingKeys.length >= limit || cursor === 0) {
+                break;
+            }
+        } while (cursor !== 0);
+
+        // 見つかったキーからカードIDを取得し、対応するカードデータを取得
+        const cardPromises = matchingKeys.slice(0, limit).map(async (key) => {
+            const cardId = await redis.get(key);
+            if (cardId) {
+                const cardData = await redis.get(`card:${cardId}`);
+                return cardData ? JSON.parse(cardData as string) : null;
+            }
+            return null;
+        });
+
+        // 結果を取得し、nullを除外
+        const cards = (await Promise.all(cardPromises)).filter(card => card !== null);
+        return cards;
+
+    } catch (error) {
+        console.error('Error searching cards:', error);
+        throw new Error('Failed to search cards');
     }
 }
+
 
 // フォールバック検索メソッド
 async function fallbackSearchCards(keyword: string, limit: number = 20): Promise<Card[]> {
