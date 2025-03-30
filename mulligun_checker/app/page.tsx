@@ -1,55 +1,112 @@
 "use client";
 
-interface CardSet {
-	cardName: string;
-	number: number;
-}
+import { useState, useEffect } from "react";
+import { useCardList } from "@/app/hooks/useCardList";
 
-interface DeckList {
-	List: CardSet[];
-}
+export default function CardManager() {
+	const [card, setCard] = useState(null);
+	const [loading, setLoading] = useState(false);
 
-const deckList: CardSet[] = [
-	{ cardName: "Forest", number: 1 },
-	{ cardName: "Mountain", number: 2 },
-	{ cardName: "Island", number: 3 },
-	{ cardName: "Swamp", number: 4 },
-	{ cardName: "Plains", number: 5 },
-];
-
-function createDeck(deckList: CardSet[]) {
-	const deck: string[] = [];
-
-	deckList.map((cardset) => {
-		for (let i = 0; i < cardset.number; i++) {
-			deck.push(cardset.cardName);
+	async function fetchCard(id = 3) {
+		setLoading(true);
+		try {
+			const res = await fetch(`/api/mtg?cardId=${id}`);
+			const data = await res.json();
+			setCard(data.card);
+			console.log(data);
+		} catch (error) {
+			console.error("Error fetching card:", error);
+		} finally {
+			setLoading(false);
 		}
-	});
+	}
 
-	const random = Math.random();
+	useEffect(() => {
+		fetchCard();
+	}, []);
 
-	console.log((random * 100) / deck.length);
+	const {
+		cardList,
+		inputText,
+		isLoading,
+		error,
+		handleInputChange,
+		processInput,
+		removeCard,
+		clearCardList,
+	} = useCardList();
 
-	console.log(random);
-	console.log(deck);
-}
-
-function drawHand(deck: string[]) {
-	const hand: string[] = [];
-	const shuffledDeck: string[] = [];
-
-	// shuffledDeck.push(deck);
-}
-
-export default function Home() {
 	return (
-		<div>
-			<textarea name="deck" id=""></textarea>
-			<div>
-				{/* コンソールエリア */}
-				<button onClick={() => createDeck(deckList)}>条件の追加</button>
+		<div className="p-4">
+			<h1 className="text-2xl font-bold mb-4">カード管理</h1>
+
+			{/* 入力エリア */}
+			<div className="mb-4">
+				<textarea
+					className="w-full p-2 border rounded"
+					rows={5}
+					value={inputText}
+					onChange={handleInputChange}
+					placeholder="カード情報を入力してください..."
+					disabled={isLoading}
+				/>
+				<div className="mt-2 flex gap-2">
+					<button
+						className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50"
+						onClick={processInput}
+						disabled={isLoading || !inputText.trim()}
+					>
+						{isLoading ? "処理中..." : "処理する"}
+					</button>
+					<button
+						className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
+						onClick={clearCardList}
+						disabled={cardList.length === 0}
+					>
+						リストをクリア
+					</button>
+					<button
+						className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
+						onClick={() => fetchCard()}
+					>
+						テスト
+					</button>
+				</div>
 			</div>
-			<div>{/* 表示エリア */}</div>
+
+			{/* エラーメッセージ */}
+			{error && (
+				<div className="mb-4 p-3 bg-red-100 text-red-700 rounded">
+					{error}
+				</div>
+			)}
+
+			{/* カードリスト */}
+			<div className="mt-6">
+				<h2 className="text-xl font-semibold mb-2">
+					カードリスト ({cardList.length}枚)
+				</h2>
+				{cardList.length === 0 ? (
+					<p className="text-gray-500">カードがありません</p>
+				) : (
+					<ul className="space-y-2">
+						{cardList.map((card) => (
+							<li
+								key={card.id}
+								className="p-3 border rounded flex justify-between items-center"
+							>
+								<span>{card.name}</span>
+								<button
+									className="text-red-500 hover:text-red-700"
+									onClick={() => removeCard(card.id)}
+								>
+									削除
+								</button>
+							</li>
+						))}
+					</ul>
+				)}
+			</div>
 		</div>
 	);
 }
