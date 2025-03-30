@@ -1,10 +1,10 @@
 // app/api/cards/[id]/route.ts
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { getCardById, saveCard, Card } from '@/app/lib/cards';
 
 // 特定のカードを取得
 export async function GET(
-    request: NextRequest,
+    request: Request,
     { params }: { params: { id: string } }
 ) {
     try {
