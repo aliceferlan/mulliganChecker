@@ -1,7 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Image from "next/image";
 import { useCardList } from "@/app/hooks/useCardList";
+import DeckList from "../components/cards";
 
 export default function CardManager() {
 	const [card, setCard] = useState(null);
@@ -77,29 +79,14 @@ export default function CardManager() {
 
 			{/* カードリスト */}
 			<div className="mt-6">
-				<h2 className="text-xl font-semibold mb-2">
-					カードリスト ({cardList.mainboard.length}枚)
-				</h2>
 				{cardList.mainboard.length === 0 ? (
 					<p className="text-gray-500">カードがありません</p>
 				) : (
-					<ul className="space-y-2">
-						{cardList.mainboard.map((card) => (
-							<li
-								key={card.name}
-								className="p-3 border rounded flex justify-between items-center"
-							>
-								<span>{card.name}</span>
-								<span>{card.amount}</span>
-								<button
-									className="text-red-500 hover:text-red-700"
-									onClick={() => removeCard(card.name)}
-								>
-									削除
-								</button>
-							</li>
-						))}
-					</ul>
+					<DeckList
+						mainboard={cardList.mainboard}
+						sideboard={cardList.sideboard}
+						maybeboard={cardList.maybeboard}
+					/>
 				)}
 			</div>
 		</div>

@@ -13,6 +13,7 @@
     "@vercel/kv": "^3.0.0",
     "axios": "^1.8.4",
     "better-sqlite3": "^11.9.1",
+    "framer-motion": "^12.6.2",
     "mtgsdk": "^1.0.1",
     "next": "15.2.4",
     "react": "^19.0.0",

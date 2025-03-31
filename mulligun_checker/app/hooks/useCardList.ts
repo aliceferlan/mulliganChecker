@@ -91,7 +91,7 @@ function textProcessor(listData: string): CardNameList {
 
 export function useCardList() {
     // カードリストの状態
-    const [cardList, setCardList] = useState<CardNameList>({
+    const [cardList, setCardList] = useState<CardList>({
         mainboard: [],
         sideboard: [],
         maybeboard: [],
@@ -149,19 +149,31 @@ export function useCardList() {
             // 型変換: Card[] から { name: string; amount: number; }[] への変換
             setCardList({
                 mainboard: processedCards.mainboard.map(card => ({
+                    id: card.id,
                     name: card.name,
-                    amount: card.amount || 1  // amountがundefinedの場合は1を設定
+                    amount: card.amount || 1,
+                    front: card.front,
+                    back: card.back,
+                    set: card.set,
                 })),
                 sideboard: processedCards.sideboard.map(card => ({
+                    id: card.id,
                     name: card.name,
-                    amount: card.amount || 1
+                    amount: card.amount || 1,  // amountがundefinedの場合は1を設定
+                    front: card.front,
+                    back: card.back,
+                    set: card.set,
                 })),
                 maybeboard: processedCards.maybeboard.map(card => ({
+                    id: card.id,
                     name: card.name,
-                    amount: card.amount || 1
+                    amount: card.amount || 1,  // amountがundefinedの場合は1を設定
+                    front: card.front,
+                    back: card.back,
+                    set: card.set,
                 }))
             });
-
+            console.log("Card list updated:", cardList);
             // 成功したら入力をクリア（オプション）
             // setInputText('');
         } catch (err) {

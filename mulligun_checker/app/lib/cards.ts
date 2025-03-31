@@ -30,7 +30,7 @@ export async function getCardById(id: string): Promise<Card | null> {
     const cardData = await redis.get(`card:${id}`);
 
     // デバッグログを追加
-    console.log(`Raw card data for ID ${id}:`, cardData);
+    // console.log(`Raw card data for ID ${id}:`, cardData);
 
     if (!cardData) return null;
 

@@ -34,17 +34,19 @@ async function getCardDataFromNameEachBoard(getCardDataFromNameEachBoard: Card[]
 
     for (const cardName of getCardDataFromNameEachBoard) {
         // console.log(cardName.name); // デバッグ用ログ
-        const cardData = await fetch(`https://api.scryfall.com/cards/named?exact=${cardName.name}`)
-            .then((res) => res.json())
-            .then((data) => data);
+        // const cardData = await fetch(`https://api.scryfall.com/cards/named?exact=${cardName.name}`)
+        //     .then((res) => res.json())
+        //     .then((data) => data);
 
-        const cardData2 = await findCardByName(cardName.name)
+        const cardData = await findCardByName(cardName.name)
         if (cardData) {
 
             // console.log(cardData); // デバッグ用ログ
-            console.log("card amount", cardName); // デバッグ用ログ
+            // console.log("card amount", cardName); // デバッグ用ログ
             cardDataList.push(cardData);
             cardDataList[cardDataList.length - 1].amount = cardName.amount; // カウントを追加
+            cardDataList[cardDataList.length - 1].front = cardData.front; // フロントを追加
+            cardDataList[cardDataList.length - 1].back = cardData.back; // フロントを追加
         }
     }
     return cardDataList;
