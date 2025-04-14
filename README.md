@@ -27,4 +27,4 @@ muligun checker
 検索順
 
 1. color, value, all value, type, p/t
-2. text oracle, flavor, name, 
+2. text oracle, flavor, name,
