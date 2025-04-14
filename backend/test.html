@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>MTGカード検索テスト</title>
+		<meta charset="UTF-8" />
+		<style>
+			body {
+				font-family: Arial, sans-serif;
+				margin: 20px;
+			}
+			.container {
+				max-width: 800px;
+				margin: 0 auto;
+			}
+			.form-group {
+				margin-bottom: 15px;
+			}
+			label {
+				display: block;
+				margin-bottom: 5px;
+			}
+			textarea {
+				width: 100%;
+				height: 200px;
+			}
+			.card-results {
+				display: flex;
+				flex-wrap: wrap;
+			}
+			.card {
+				margin: 10px;
+				width: 220px;
+				border: 1px solid #ccc;
+				padding: 10px;
+			}
+			.card img {
+				width: 100%;
+			}
+			.error {
+				color: red;
+				padding: 10px;
+				background-color: #ffeeee;
+				border: 1px solid #ffcccc;
+				margin-bottom: 15px;
+			}
+			.raw-response {
+				background-color: #f5f5f5;
+				border: 1px solid #ddd;
+				padding: 10px;
+				margin: 15px 0;
+				max-height: 300px;
+				overflow: auto;
+				white-space: pre-wrap;
+				font-family: monospace;
+				font-size: 12px;
+			}
+			.debug-section {
+				margin-top: 20px;
+				border-top: 1px solid #ddd;
+				padding-top: 10px;
+			}
+			.toggle-btn {
+				background: #f0f0f0;
+				border: 1px solid #ccc;
+				padding: 5px 10px;
+				cursor: pointer;
+			}
+		</style>
+	</head>
+	<body>
+		<div class="container">
+			<h1>MTGカード検索テスト</h1>
+
+			<div class="form-group">
+				<label for="serverUrl">サーバーURL:</label>
+				<input
+					type="text"
+					id="serverUrl"
+					value="https://migawari.com/search/"
+					style="width: 100%"
+				/>
+			</div>
+
+			<div class="form-group">
+				<label for="jsonInput">検索条件 (JSON形式):</label>
+				<textarea id="jsonInput">
+{
+  "name": "龍",
+  "colors_include": ["R"],
+  "include_images": true,
+  "limit": 20
+}</textarea
+				>
+			</div>
+
+			<button id="searchBtn">検索</button>
+			<label
+				><input type="checkbox" id="debugMode" checked />
+				デバッグモード</label
+			>
+
+			<h2>検索結果</h2>
+			<div id="status"></div>
+
+			<div class="debug-section" id="debugSection">
+				<button class="toggle-btn" id="toggleRawResponse">
+					生のレスポンスを表示
+				</button>
+				<div
+					class="raw-response"
+					id="rawResponse"
+					style="display: none"
+				></div>
+			</div>
+
+			<div id="cardResults" class="card-results"></div>
+		</div>
+
+		<script>
+			document
+				.getElementById("searchBtn")
+				.addEventListener("click", async () => {
+					const serverUrl = document
+						.getElementById("serverUrl")
+						.value.trim();
+					const jsonInput = document
+						.getElementById("jsonInput")
+						.value.trim();
+					const statusEl = document.getElementById("status");
+					const resultsEl = document.getElementById("cardResults");
+					const rawResponseEl =
+						document.getElementById("rawResponse");
+					const debugMode =
+						document.getElementById("debugMode").checked;
+
+					document.getElementById("debugSection").style.display =
+						debugMode ? "block" : "none";
+
+					statusEl.textContent = "検索中...";
+					statusEl.className = "";
+					resultsEl.innerHTML = "";
+					rawResponseEl.innerHTML = "";
+
+					try {
+						const jsonData = JSON.parse(jsonInput);
+
+						// 数値パラメータを確実に数値型にする
+						if (jsonData.limit !== undefined) {
+							jsonData.limit = Number(jsonData.limit);
+						}
+						if (jsonData.offset !== undefined) {
+							jsonData.offset = Number(jsonData.offset);
+						}
+
+						console.log(
+							"リクエスト送信:",
+							JSON.stringify(jsonData)
+						);
+
+						const response = await fetch(serverUrl, {
+							method: "POST",
+							headers: {
+								"Content-Type": "application/json",
+							},
+							body: JSON.stringify(jsonData),
+						});
+
+						// レスポンスのステータスコードとステータステキストを表示
+						statusEl.textContent = `レスポンス: ${response.status} ${response.statusText}`;
+
+						// 生のレスポンスを取得
+						const responseText = await response.text();
+
+						if (debugMode) {
+							// 生のレスポンスを表示
+							rawResponseEl.textContent = responseText;
+							document
+								.getElementById("toggleRawResponse")
+								.addEventListener("click", () => {
+									rawResponseEl.style.display =
+										rawResponseEl.style.display === "none"
+											? "block"
+											: "none";
+								});
+						}
+
+						let data;
+						try {
+							// JSON解析を試みる
+							data = JSON.parse(responseText);
+						} catch (parseError) {
+							throw new Error(
+								`JSONの解析に失敗しました: ${
+									parseError.message
+								}\n\n最初の200文字のレスポンス: ${responseText.substring(
+									0,
+									200
+								)}`
+							);
+						}
+
+						if (data.error) {
+							statusEl.textContent = "エラー: " + data.error;
+							statusEl.className = "error";
+							return;
+						}
+
+						statusEl.textContent = `${
+							data.total || 0
+						}件のカードが見つかりました`;
+
+						if (data.cards && data.cards.length > 0) {
+							data.cards.forEach((card) => {
+								const cardEl = document.createElement("div");
+								cardEl.className = "card";
+
+								let html = `<h3>${card.name}</h3>`;
+								html += `<p>${card.type_line || ""}</p>`;
+
+								// 言語情報があれば表示
+								if (card.lang) {
+									html += `<p>言語: ${card.lang}</p>`;
+								}
+
+								// マナコストがあれば表示
+								if (card.mana_cost) {
+									html += `<p>マナコスト: ${card.mana_cost}</p>`;
+								}
+
+								if (card.images && card.images.normal) {
+									html += `<img src="${card.images.normal}" alt="${card.name}">`;
+								}
+
+								cardEl.innerHTML = html;
+								resultsEl.appendChild(cardEl);
+							});
+						}
+					} catch (error) {
+						statusEl.textContent = "エラー: " + error.message;
+						statusEl.className = "error";
+						console.error("詳細エラー:", error);
+					}
+				});
+
+			// デバッグモードのトグル挙動
+			document
+				.getElementById("debugMode")
+				.addEventListener("change", function () {
+					document.getElementById("debugSection").style.display = this
+						.checked
+						? "block"
+						: "none";
+				});
+		</script>
+	</body>
+</html>

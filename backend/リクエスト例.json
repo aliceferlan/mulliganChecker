@@ -1,0 +1,21 @@
+{
+	"name": "Dragon",
+	"type": ["Creatue"],
+	"set": ["M21", "M20", "M19"],
+	"text": [{ "operand": "and", "text": "draw a card" }],
+	"colors": [{ "operand": "all", "values": ["R", "G"] }],
+	"power": { "min": 3, "max": 5 },
+	"toughness": { "min": 3, "max": 5 },
+	"loyalty": { "min": 3, "max": 5 },
+	"cmc": { "min": 3, "max": 5, "equal": 4 },
+	"rarity": ["rare", "mythic"],
+	"language": ["en"],
+	"format": [
+		{ "value": "starndard", "status": "legal" },
+		{ "value": "modern", "status": "legal" }
+	],
+	"keywords": ["flying", "trample"],
+	"artist": ["John Doe", "Jane Smith"],
+	"limit": 20,
+	"offset": 0
+}
