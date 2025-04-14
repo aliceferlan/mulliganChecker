@@ -26,7 +26,7 @@ async function getCardDataFromBoard(deckList: Card[]): Promise<Card[]> {
     return cardDataList;
 }
 
-import { findCardByName } from "@/app/lib/cardService";
+import { findCardByName } from "@/app/lib/cardSearch";
 
 async function getCardDataFromNameEachBoard(getCardDataFromNameEachBoard: Card[]): Promise<Card[]> {
 

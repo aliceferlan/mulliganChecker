@@ -20,3 +20,11 @@ muligun checker
   - JA, EN
 - 1ページの取得枚数の変更
 - 画像クリックで詳細
+
+画像をホバーでテキストを表示
+
+
+検索順
+
+1. color, value, all value, type, p/t
+2. text oracle, flavor, name, 

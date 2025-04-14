@@ -1,6 +1,6 @@
 // app/api/cards/search/route.ts
 import { NextRequest, NextResponse } from 'next/server';
-import { searchCardsByKeyword, findCardByName } from '@/app/lib/cardService';
+import { searchCardsByKeyword, findCardByName } from '@/app/lib/cardSearch';
 
 export async function GET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams;

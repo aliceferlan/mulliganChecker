@@ -42,3 +42,17 @@ export type CardNameList = {
         amount: number;
     }[];
 };
+
+export interface SearchQuery {
+    name?: string; // カード名
+    set?: string; // セット名
+    power?: number; // パワー
+    toughness?: number; // タフネス
+    loyalty?: number; // ロイヤリティ
+    cmc?: number; // マナコスト
+    type?: string; // カードタイプ
+    color?: string; // カラー
+    rarity?: string; // レアリティ
+    oracle?: string; // テキスト
+    artist?: string; // アーティスト
+}

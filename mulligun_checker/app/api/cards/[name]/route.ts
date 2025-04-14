@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { findCardByName } from '@/app/lib/cardService';
+import { findCardByName } from '@/app/lib/cardSearch';
 
 // 特定のカードを取得
 export async function GET(request: NextRequest) {
