@@ -4,6 +4,7 @@
 import { useState } from "react";
 import Colors from "./colorSelector";
 import CMCSelector from "./cmcSelector";
+import FormatSelector from "./formatSelector";
 import TextSelector from "./textSelector";
 
 function seach() {
@@ -16,9 +17,30 @@ export default function SearchConsole() {
 		<div>
 			{/* 検索用コンソール */}
 			<div className="search-console">
+				{/* 言語セレクタ */}
+				<div className="search-console__language-selector">
+					<select name="languages" id="languages">
+						<option value="en">English</option>
+						<option value="ja">日本語</option>
+					</select>
+				</div>
+				{/* ソートセレクタ */}
+				<div className="search-console__sort-selector">
+					<select name="sort" id="sort">
+						<option value="asc">Ascending</option>
+						<option value="desc">Descending</option>
+					</select>
+				</div>
+
+				{/* フォーマットセレクタ */}
+				<FormatSelector />
+
+				{/* ネームセレクタ */}
 				<div className="search-console__input">
 					<input type="text" placeholder="Name..." />
 				</div>
+
+				{/* カラーセレクタ */}
 				<div>
 					<textarea
 						name="name"
@@ -37,11 +59,31 @@ export default function SearchConsole() {
 				<div>
 					<CMCSelector />
 				</div>
-				<div>{/* mana val selector */}</div>
-				<div>{/* set selector  */}</div>
-				<div>{/* rearity selector  */}</div>
-				<div>{/* layout selector */}</div>
-				<div>{/* artist selector */}</div>
+
+				{/* タイプセレクタ */}
+				<div></div>
+
+				{/* オラクルテキストセレクタ */}
+				<div>
+					<input type="text" placeholder="Oracle Text..." />
+				</div>
+
+				{/* レイアウトセレクタ */}
+				<div className="search-console__button">
+					<button onClick={seach}>Search</button>
+				</div>
+
+				{/* セットセレクタ */}
+
+				<div className="search-console__input">
+					<input type="text" placeholder="Set..." />
+				</div>
+
+				{/* レアリティセレクタ */}
+
+				<div className="search-console__input">
+					<input type="text" placeholder="Rarity..." />
+				</div>
 			</div>
 			{/* 検索表示用エリア */}
 			<div className="search-console__result">
