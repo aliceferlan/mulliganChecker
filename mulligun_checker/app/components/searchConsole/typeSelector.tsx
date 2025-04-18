@@ -1,37 +1,33 @@
 import { useState, useEffect, useRef } from "react";
-
-type Type = {
-	id: string; // タイプのID
-	name: string; // タイプの名前
-};
+import { Type } from "@/app/types";
 
 // 実際のMTGのタイプリスト
 function getTypeList(): Type[] {
 	return [
-		{ id: "1", name: "Creature" },
-		{ id: "2", name: "Artifact" },
-		{ id: "3", name: "Enchantment" },
-		{ id: "4", name: "Instant" },
-		{ id: "5", name: "Sorcery" },
-		{ id: "6", name: "Planeswalker" },
-		{ id: "7", name: "Land" },
-		{ id: "8", name: "Battle" },
+		{ status: "1", name: "Creature" },
+		{ status: "2", name: "Artifact" },
+		{ status: "3", name: "Enchantment" },
+		{ status: "4", name: "Instant" },
+		{ status: "5", name: "Sorcery" },
+		{ status: "6", name: "Planeswalker" },
+		{ status: "7", name: "Land" },
+		{ status: "8", name: "Battle" },
 		// サブタイプ
-		{ id: "100", name: "Human" },
-		{ id: "101", name: "Elf" },
-		{ id: "102", name: "Goblin" },
-		{ id: "103", name: "Zombie" },
-		{ id: "104", name: "Wizard" },
-		{ id: "105", name: "Equipment" },
-		{ id: "106", name: "Aura" },
-		{ id: "107", name: "Vehicle" },
-		{ id: "108", name: "Dragon" },
+		{ status: "100", name: "Human" },
+		{ status: "101", name: "Elf" },
+		{ status: "102", name: "Goblin" },
+		{ status: "103", name: "Zombie" },
+		{ status: "104", name: "Wizard" },
+		{ status: "105", name: "Equipment" },
+		{ status: "106", name: "Aura" },
+		{ status: "107", name: "Vehicle" },
+		{ status: "108", name: "Dragon" },
 		// 特殊タイプ
-		{ id: "200", name: "Legendary" },
-		{ id: "201", name: "Basic" },
-		{ id: "202", name: "Snow" },
-		{ id: "203", name: "Token" },
-		{ id: "204", name: "Tribal" },
+		{ status: "200", name: "Legendary" },
+		{ status: "201", name: "Basic" },
+		{ status: "202", name: "Snow" },
+		{ status: "203", name: "Token" },
+		{ status: "204", name: "Tribal" },
 	];
 }
 
@@ -178,7 +174,7 @@ export default function TypeSelector({
 					>
 						{suggestions.map((type) => (
 							<div
-								key={type.id}
+								key={type.status}
 								onClick={() => handleSuggestionClick(type.name)}
 								className="p-2 hover:bg-gray-100 cursor-pointer"
 							>

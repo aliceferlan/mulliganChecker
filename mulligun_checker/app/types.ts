@@ -10,6 +10,12 @@ export type CardData = {
     imageUrl?: string;
 };
 
+export type Type = {
+    status: string; // タイプのID
+    name: string; // タイプの名前
+};
+
+
 export type Card = {
     id: string;
     name: string;
