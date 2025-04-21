@@ -6,6 +6,7 @@ export default function Home() {
 				Welcome to the Mulligan Checker! Please select a simulator from
 				the menu.
 			</p>
+			ver 0.0.3
 		</main>
 	);
 }

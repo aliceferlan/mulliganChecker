@@ -6,6 +6,7 @@ import Colors from "./colorSelector";
 import CMCSelector from "./cmcSelector";
 import FormatSelector from "./formatSelector";
 import TextSelector from "./textSelector";
+import ManaSelector from "./manaSelector";
 
 function seach() {
 	// 検索用処理をここに書く
@@ -42,18 +43,11 @@ export default function SearchConsole() {
 
 				{/* カラーセレクタ */}
 				<div>
-					<textarea
-						name="name"
-						id="name"
-						placeholder="Name..."
-					></textarea>
+					<ManaSelector />
 				</div>
 				<div>
 					{/* oracle selector */}
 					<TextSelector id="oracle" />
-				</div>
-				<div className="search-console__button">
-					<Colors />
 				</div>
 				<div>{/* power/tough/loyarity selector */}</div>
 				<div>
