@@ -82,7 +82,14 @@ export default function SearchConsole() {
 				{/* レアリティセレクタ */}
 
 				<div className="search-console__input">
-					<input type="text" placeholder="Rarity..." />
+					<select name="rearity" id="">
+						<option value="all">All</option>
+						<option value="c">Common</option>
+						<option value="u">Uncommon</option>
+						<option value="r">Rare</option>
+						<option value="m">Mythic</option>
+						<option value="s">Special</option>
+					</select>
 				</div>
 			</div>
 			{/* 検索表示用エリア */}
