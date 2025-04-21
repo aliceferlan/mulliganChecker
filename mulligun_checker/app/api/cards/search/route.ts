@@ -1,6 +1,6 @@
 // app/api/cards/search/route.ts
 import { NextRequest, NextResponse } from 'next/server';
-import { searchCardsByKeyword, findCardByName } from '@/app/lib/cardSearch';
+import { searchCards } from '@/app/lib/cardSearch';
 
 export async function GET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams;
@@ -10,7 +10,7 @@ export async function GET(request: NextRequest) {
     try {
         if (exactName) {
             // 正確な名前で検索
-            const card = await findCardByName(exactName);
+            const card = await searchCards({ name: exactName });
 
             if (!card) {
                 return NextResponse.json({ error: 'Card not found' }, { status: 404 });
@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
             return NextResponse.json({ card });
         } else if (query) {
             // キーワード検索
-            const cards = await searchCardsByKeyword(query);
+            const cards = await searchCards({ name: query });
 
             // console.log('Search results:', cards); // デバッグ用ログ
             return NextResponse.json({ cards });

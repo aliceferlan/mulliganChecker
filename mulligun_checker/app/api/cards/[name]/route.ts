@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { findCardByName } from '@/app/lib/cardSearch';
+import { searchCards } from '@/app/lib/cardSearch';
 
 // 特定のカードを取得
 export async function GET(request: NextRequest) {
@@ -13,7 +13,7 @@ export async function GET(request: NextRequest) {
             return NextResponse.json({ error: 'Card ID is required' }, { status: 400 });
         }
 
-        const card = await findCardByName(name);
+        const card = await searchCards({ name });
         if (!card) {
             return NextResponse.json({ error: 'Card not found' }, { status: 404 });
         }

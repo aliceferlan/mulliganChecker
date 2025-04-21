@@ -13,7 +13,7 @@ export async function GET(request: NextRequest) {
 
 
     try {
-        const cards = await searchCards(page, limit);
+        const cards = await searchCards({});
         return NextResponse.json({ cards });
     } catch (error) {
         console.error('Error fetching cards:', error);
