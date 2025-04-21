@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import { useCardList } from "@/app/hooks/useCardList";
-import DeckList from "../components/cards";
+import DeckList from "@/app/cards/page";
 
 export default function CardManager() {
 	const [card, setCard] = useState(null);
@@ -83,9 +83,9 @@ export default function CardManager() {
 					<p className="text-gray-500">カードがありません</p>
 				) : (
 					<DeckList
-						mainboard={cardList.mainboard}
-						sideboard={cardList.sideboard}
-						maybeboard={cardList.maybeboard}
+					// mainboard={cardList.mainboard}
+					// sideboard={cardList.sideboard}
+					// maybeboard={cardList.maybeboard}
 					/>
 				)}
 			</div>

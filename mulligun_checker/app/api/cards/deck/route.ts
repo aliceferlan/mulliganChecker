@@ -1,6 +1,6 @@
 import { json } from "stream/consumers";
 import { CardList, Card } from "@/app/types";
-import { searchCardByName } from "@/app/lib/mtgAPI";
+
 import { NextResponse } from 'next/server';
 
 async function getCardListFromRequest(request: Request): Promise<CardList> {
@@ -13,20 +13,7 @@ async function getCardListFromRequest(request: Request): Promise<CardList> {
 }
 
 
-async function getCardDataFromBoard(deckList: Card[]): Promise<Card[]> {
-
-    const cardDataList: Card[] = [];
-
-    for (const cardName of deckList) {
-        const cardData = await searchCardByName(cardName.name)
-        if (cardData) {
-            cardDataList.push(cardData);
-        }
-    }
-    return cardDataList;
-}
-
-import { findCardByName } from "@/app/lib/cardSearch";
+import { searchCards } from "@/app/lib/cardSearch";
 
 async function getCardDataFromNameEachBoard(getCardDataFromNameEachBoard: Card[]): Promise<Card[]> {
 
@@ -38,15 +25,15 @@ async function getCardDataFromNameEachBoard(getCardDataFromNameEachBoard: Card[]
         //     .then((res) => res.json())
         //     .then((data) => data);
 
-        const cardData = await findCardByName(cardName.name)
-        if (cardData) {
-
+        const searchResult = await searchCards({ name: cardName.name });
+        if (searchResult && !Array.isArray(searchResult)) {
+            const cardData: Card & { amount?: number; front?: string; back?: string } = searchResult;
             // console.log(cardData); // デバッグ用ログ
             // console.log("card amount", cardName); // デバッグ用ログ
+            cardData.amount = cardName.amount; // カウントを追加
+            cardData.front = cardData.front; // フロントを追加
+            cardData.back = cardData.back; // バックを追加
             cardDataList.push(cardData);
-            cardDataList[cardDataList.length - 1].amount = cardName.amount; // カウントを追加
-            cardDataList[cardDataList.length - 1].front = cardData.front; // フロントを追加
-            cardDataList[cardDataList.length - 1].back = cardData.back; // フロントを追加
         }
     }
     return cardDataList;
