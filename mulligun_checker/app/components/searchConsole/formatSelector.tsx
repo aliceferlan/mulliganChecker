@@ -89,28 +89,29 @@ export default function FormatSelector() {
 	}, []);
 
 	const handleStatusChange = (format: Type, status: FormatStatus) => {
-		if (status === "none") {
-			// Remove format from selected formats
-			setSelectedFormats((prev) =>
-				prev.filter((f) => f.status !== format.status)
+		setSelectedFormats((prevFormats) => {
+			// フォーマット名で既存の項目を検索
+			const existingIndex = prevFormats.findIndex(
+				(f) => f.name === format.name
 			);
-		} else {
-			// Add or update format in selected formats
-			setSelectedFormats((prev) => {
-				const existingIndex = prev.findIndex(
-					(f) => f.status === format.status
+
+			// none の場合はリストから削除
+			if (status === "none") {
+				return prevFormats.filter(
+					(_, index) => index !== existingIndex
 				);
-				if (existingIndex >= 0) {
-					// Update existing format
-					const updated = [...prev];
-					updated[existingIndex] = { ...format, status };
-					return updated;
-				} else {
-					// Add new format
-					return [...prev, { ...format, status }];
-				}
-			});
-		}
+			}
+
+			// 既存のフォーマットがある場合は更新
+			if (existingIndex >= 0) {
+				const updated = [...prevFormats];
+				updated[existingIndex] = { ...format, status };
+				return updated;
+			}
+
+			// 新しいフォーマットの場合は追加
+			return [...prevFormats, { ...format, status }];
+		});
 	};
 
 	if (isLoading) return <div>Loading formats...</div>;
@@ -140,8 +141,8 @@ export default function FormatSelector() {
 				) : (
 					<ul className="list-disc pl-6">
 						{selectedFormats.map((format) => (
-							<li key={format.status}>
-								{format.name || format.name}:{" "}
+							<li key={format.name}>
+								{format.name}:{" "}
 								<span className="font-medium">
 									{format.status}
 								</span>
