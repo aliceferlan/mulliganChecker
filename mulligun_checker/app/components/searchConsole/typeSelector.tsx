@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Type } from "@/app/types";
 
-// 実際のMTGのタイプリスト - コンポーネント外で一度だけ定義
-const TYPE_LIST: Type[] = [
+// デフォルトのMTGタイプリスト - コンポーネント外で一度だけ定義
+const DEFAULT_TYPE_LIST: Type[] = [
 	{ status: "1", name: "Creature" },
 	{ status: "2", name: "Artifact" },
 	{ status: "3", name: "Enchantment" },
@@ -47,11 +47,13 @@ type Connection = {
 type TypeSelectorProps = {
 	onChange?: (query: string) => void;
 	initialSelection?: string[];
+	typeList?: Type[]; // 追加：カスタムタイプリスト
 };
 
 export default function TypeSelector({
 	onChange,
 	initialSelection = [],
+	typeList = DEFAULT_TYPE_LIST, // デフォルト値を設定
 }: TypeSelectorProps) {
 	// 選択されたタイプと状態の管理
 	const [selectedTypes, setSelectedTypes] = useState<SelectedType[]>(
@@ -160,7 +162,7 @@ export default function TypeSelector({
 			return;
 		}
 
-		const filtered = TYPE_LIST.filter(
+		const filtered = typeList.filter(
 			(type) =>
 				!selectedTypes.some(
 					(selected) => selected.name === type.name
@@ -180,7 +182,7 @@ export default function TypeSelector({
 
 		setSuggestions(filtered);
 		setShowSuggestions(filtered.length > 0);
-	}, [inputValue, selectedTypes]);
+	}, [inputValue, selectedTypes, typeList]);
 
 	// handleSuggestionClickを参照するため、useEffect内で使用できるように関数を定義
 	const handleSuggestionClick = (typeName: string) => {

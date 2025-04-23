@@ -9,13 +9,46 @@ import TextSelector from "./textSelector";
 import ManaSelector from "./manaSelector";
 import OracleSelector from "./oracleSelector";
 import TypeSelector from "./typeSelector";
+import { Type } from "@/app/types";
 
 function seach() {
 	// 検索用処理をここに書く
 	console.log("Searching...");
 }
 
+function getSetsList() {
+	// セットリストを取得する処理をここに書く
+	// 例: APIからセットリストを取得する
+	return [
+		"Alpha",
+		"Beta",
+		"Unlimited",
+		"Arabian Nights",
+		"Legends",
+		"The Dark",
+		"Fallen Empires",
+		"Homelands",
+	];
+}
+
+function getTypesList() {
+	// タイプリストを取得する処理をここに書く
+	// 例: APIからタイプリストを取得する
+	return ["Creature", "Instant", "Sorcery", "Artifact", "Enchantment"];
+}
+
+// 文字列配列をType型の配列に変換する関数
+function convertStringsToTypes(strings: string[]): Type[] {
+	return strings.map((name, index) => ({
+		status: index.toString(), // インデックスをstatusとして使用
+		name,
+	}));
+}
+
 export default function SearchConsole() {
+	const setsList = convertStringsToTypes(getSetsList());
+	const typeList = convertStringsToTypes(getTypesList());
+
 	return (
 		<div>
 			{/* 検索用コンソール */}
@@ -48,7 +81,7 @@ export default function SearchConsole() {
 					<ManaSelector />
 				</div>
 				<div>
-					{/* oracle selector */}
+					{/* オラクルセレクタ */}
 					<TextSelector id="oracle" />
 				</div>
 				<div>{/* power/tough/loyarity selector */}</div>
@@ -57,7 +90,7 @@ export default function SearchConsole() {
 				</div>
 
 				{/* タイプセレクタ */}
-				<TypeSelector />
+				<TypeSelector typeList={typeList} />
 
 				{/* オラクルテキストセレクタ */}
 				<OracleSelector />
@@ -72,6 +105,7 @@ export default function SearchConsole() {
 				<div className="search-console__input">
 					<input type="text" placeholder="Set..." />
 				</div>
+				<TypeSelector typeList={setsList} />
 
 				{/* レアリティセレクタ */}
 
