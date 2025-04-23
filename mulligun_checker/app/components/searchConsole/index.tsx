@@ -7,6 +7,8 @@ import CMCSelector from "./cmcSelector";
 import FormatSelector from "./formatSelector";
 import TextSelector from "./textSelector";
 import ManaSelector from "./manaSelector";
+import OracleSelector from "./oracleSelector";
+import TypeSelector from "./typeSelector";
 
 function seach() {
 	// 検索用処理をここに書く
@@ -55,12 +57,10 @@ export default function SearchConsole() {
 				</div>
 
 				{/* タイプセレクタ */}
-				<div></div>
+				{/* <TypeSelector /> */}
 
 				{/* オラクルテキストセレクタ */}
-				<div>
-					<input type="text" placeholder="Oracle Text..." />
-				</div>
+				<OracleSelector />
 
 				{/* レイアウトセレクタ */}
 				<div className="search-console__button">
