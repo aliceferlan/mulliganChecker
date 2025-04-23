@@ -1,38 +1,51 @@
-import { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Type } from "@/app/types";
 
-// 実際のMTGのタイプリスト
-function getTypeList(): Type[] {
-	return [
-		{ status: "1", name: "Creature" },
-		{ status: "2", name: "Artifact" },
-		{ status: "3", name: "Enchantment" },
-		{ status: "4", name: "Instant" },
-		{ status: "5", name: "Sorcery" },
-		{ status: "6", name: "Planeswalker" },
-		{ status: "7", name: "Land" },
-		{ status: "8", name: "Battle" },
-		// サブタイプ
-		{ status: "100", name: "Human" },
-		{ status: "101", name: "Elf" },
-		{ status: "102", name: "Goblin" },
-		{ status: "103", name: "Zombie" },
-		{ status: "104", name: "Wizard" },
-		{ status: "105", name: "Equipment" },
-		{ status: "106", name: "Aura" },
-		{ status: "107", name: "Vehicle" },
-		{ status: "108", name: "Dragon" },
-		// 特殊タイプ
-		{ status: "200", name: "Legendary" },
-		{ status: "201", name: "Basic" },
-		{ status: "202", name: "Snow" },
-		{ status: "203", name: "Token" },
-		{ status: "204", name: "Tribal" },
-	];
-}
+// 実際のMTGのタイプリスト - コンポーネント外で一度だけ定義
+const TYPE_LIST: Type[] = [
+	{ status: "1", name: "Creature" },
+	{ status: "2", name: "Artifact" },
+	{ status: "3", name: "Enchantment" },
+	{ status: "4", name: "Instant" },
+	{ status: "5", name: "Sorcery" },
+	{ status: "6", name: "Planeswalker" },
+	{ status: "7", name: "Land" },
+	{ status: "8", name: "Battle" },
+	// サブタイプ
+	{ status: "100", name: "Human" },
+	{ status: "101", name: "Elf" },
+	{ status: "102", name: "Goblin" },
+	{ status: "103", name: "Zombie" },
+	{ status: "104", name: "Wizard" },
+	{ status: "105", name: "Equipment" },
+	{ status: "106", name: "Aura" },
+	{ status: "107", name: "Vehicle" },
+	{ status: "108", name: "Dragon" },
+	// 特殊タイプ
+	{ status: "200", name: "Legendary" },
+	{ status: "201", name: "Basic" },
+	{ status: "202", name: "Snow" },
+	{ status: "203", name: "Token" },
+	{ status: "204", name: "Tribal" },
+];
+
+// 選択したタイプの状態を表す型
+type SelectedType = {
+	name: string;
+	include: boolean; // true: 含む, false: 含まない
+};
+
+// タイプ間の接続方法
+type ConnectionType = "AND" | "OR";
+
+// タイプ間の接続情報を管理
+type Connection = {
+	type: ConnectionType;
+	index: number; // 何番目と何番目の間の接続か
+};
 
 type TypeSelectorProps = {
-	onChange?: (selectedTypes: string[]) => void;
+	onChange?: (query: string) => void;
 	initialSelection?: string[];
 };
 
@@ -40,9 +53,17 @@ export default function TypeSelector({
 	onChange,
 	initialSelection = [],
 }: TypeSelectorProps) {
-	const typeList = getTypeList(); // タイプのリストを取得
-	const [selectedTypes, setSelectedTypes] =
-		useState<string[]>(initialSelection); // 選択されたタイプを管理
+	// 選択されたタイプと状態の管理
+	const [selectedTypes, setSelectedTypes] = useState<SelectedType[]>(
+		initialSelection.map((name) => ({ name, include: true }))
+	);
+
+	// 接続方法の管理（インデックスごとに接続方法を保持）
+	// connections[0]は1番目と2番目の間の接続、connections[1]は2番目と3番目の間の接続...
+	const [connections, setConnections] = useState<ConnectionType[]>(
+		Array(Math.max(0, initialSelection.length - 1)).fill("AND")
+	);
+
 	const [inputValue, setInputValue] = useState<string>(""); // 入力値を管理
 	const [suggestions, setSuggestions] = useState<Type[]>([]); // サジェストを管理
 	const [showSuggestions, setShowSuggestions] = useState<boolean>(false); // サジェスト表示の制御
@@ -53,9 +74,84 @@ export default function TypeSelector({
 	// 選択が変更されたら親コンポーネントに通知
 	useEffect(() => {
 		if (onChange) {
-			onChange(selectedTypes);
+			// 検索クエリを構築
+			const query = buildSearchQuery();
+			onChange(query);
 		}
-	}, [selectedTypes, onChange]);
+	}, [selectedTypes, connections, onChange]);
+
+	// 検索クエリ構築関数
+	const buildSearchQuery = (): string => {
+		if (selectedTypes.length === 0) return "";
+
+		// AND/ORが混在しているか確認
+		const hasMixedConnections =
+			connections.some((conn) => conn === "OR") &&
+			connections.some((conn) => conn === "AND");
+
+		// クエリ構築（最初のタイプから）
+		let query = "";
+
+		if (hasMixedConnections) {
+			// AND/ORが混在する場合、ANDでつながれた部分を括弧で括る
+			// まずANDで連結されたグループを特定
+			let currentGroup: string[] = [
+				`${selectedTypes[0].include ? "" : "-"}${
+					selectedTypes[0].name
+				}`,
+			];
+			let groupType: ConnectionType | null = null;
+			let result: string[] = [];
+
+			// 各接続とタイプを処理
+			for (let i = 0; i < connections.length; i++) {
+				const connection = connections[i];
+				const nextType = `${selectedTypes[i + 1].include ? "" : "-"}${
+					selectedTypes[i + 1].name
+				}`;
+
+				// 最初のグループまたは同じ接続タイプが続く場合
+				if (groupType === null || groupType === connection) {
+					currentGroup.push(nextType);
+					groupType = connection;
+				} else {
+					// 接続タイプが変わる場合、前のグループを確定
+					if (groupType === "AND" && currentGroup.length > 1) {
+						// ANDグループは括弧で括る
+						result.push(`(${currentGroup.join(" AND ")})`);
+					} else {
+						// ORグループはそのまま追加
+						result.push(currentGroup.join(" OR "));
+					}
+					// 新しいグループを開始
+					currentGroup = [nextType];
+					groupType = connection;
+				}
+			}
+
+			// 最後のグループを処理
+			if (currentGroup.length > 0) {
+				if (groupType === "AND" && currentGroup.length > 1) {
+					result.push(`(${currentGroup.join(" AND ")})`);
+				} else {
+					result.push(currentGroup.join(` ${groupType} `));
+				}
+			}
+
+			// 最終的な結合（ORで結合）
+			query = result.join(" OR ");
+		} else {
+			// 混在していない場合は単純に結合
+			const connectionType =
+				connections.length > 0 ? connections[0] : "AND";
+			const typeQueries = selectedTypes.map(
+				(type) => `${type.include ? "" : "-"}${type.name}`
+			);
+			query = typeQueries.join(` ${connectionType} `);
+		}
+
+		return query;
+	};
 
 	// 入力値が変更されたらサジェストを更新
 	useEffect(() => {
@@ -64,15 +160,93 @@ export default function TypeSelector({
 			return;
 		}
 
-		const filtered = typeList.filter(
+		const filtered = TYPE_LIST.filter(
 			(type) =>
-				!selectedTypes.includes(type.name) && // すでに選択されていないもの
+				!selectedTypes.some(
+					(selected) => selected.name === type.name
+				) && // すでに選択されていないもの
 				type.name.toLowerCase().includes(inputValue.toLowerCase()) // 入力値にマッチするもの
 		);
 
+		// 入力値が完全に一致するタイプがある場合は自動選択
+		const exactMatch = filtered.find(
+			(type) => type.name.toLowerCase() === inputValue.toLowerCase()
+		);
+
+		if (exactMatch) {
+			handleSuggestionClick(exactMatch.name);
+			return;
+		}
+
 		setSuggestions(filtered);
 		setShowSuggestions(filtered.length > 0);
-	}, [inputValue, typeList, selectedTypes]);
+	}, [inputValue, selectedTypes]);
+
+	// handleSuggestionClickを参照するため、useEffect内で使用できるように関数を定義
+	const handleSuggestionClick = (typeName: string) => {
+		if (!selectedTypes.some((type) => type.name === typeName)) {
+			setSelectedTypes([
+				...selectedTypes,
+				{ name: typeName, include: true },
+			]);
+
+			// 新しい接続を追加（デフォルトはAND）
+			if (selectedTypes.length > 0) {
+				setConnections([...connections, "AND"]);
+			}
+		}
+		setInputValue("");
+		setShowSuggestions(false);
+
+		// 入力フォームにフォーカスを戻す
+		if (inputRef.current) {
+			inputRef.current.focus();
+		}
+	};
+
+	// 選択済みタイプの含む/含まない状態を切り替え
+	const toggleTypeInclusion = (typeName: string) => {
+		setSelectedTypes(
+			selectedTypes.map((type) =>
+				type.name === typeName
+					? { ...type, include: !type.include }
+					: type
+			)
+		);
+	};
+
+	// 特定の接続方法を切り替え
+	const toggleConnection = (index: number) => {
+		setConnections(
+			connections.map((conn, i) =>
+				i === index ? (conn === "AND" ? "OR" : "AND") : conn
+			)
+		);
+	};
+
+	// 選択されたタイプを削除する処理
+	const removeType = (index: number) => {
+		// タイプを削除
+		setSelectedTypes(selectedTypes.filter((_, i) => i !== index));
+
+		// 接続も適切に更新
+		if (index === 0 && connections.length > 0) {
+			// 最初のタイプが削除された場合、最初の接続も削除
+			setConnections(connections.slice(1));
+		} else if (
+			index === selectedTypes.length - 1 &&
+			connections.length > 0
+		) {
+			// 最後のタイプが削除された場合、最後の接続を削除
+			setConnections(connections.slice(0, -1));
+		} else if (index > 0 && index < selectedTypes.length - 1) {
+			// 中間のタイプが削除された場合、その前後の接続を結合
+			// 例：[AND, OR, AND]でindex=1のタイプを削除すると、[AND, AND]になる
+			const newConnections = [...connections];
+			newConnections.splice(index - 1, 2, connections[index - 1]);
+			setConnections(newConnections);
+		}
+	};
 
 	// サジェスト以外をクリックしたらサジェストを閉じる
 	useEffect(() => {
@@ -99,25 +273,6 @@ export default function TypeSelector({
 		setShowSuggestions(true);
 	};
 
-	// サジェストがクリックされたときの処理
-	const handleSuggestionClick = (typeName: string) => {
-		if (!selectedTypes.includes(typeName)) {
-			setSelectedTypes([...selectedTypes, typeName]);
-		}
-		setInputValue("");
-		setShowSuggestions(false);
-
-		// 入力フォームにフォーカスを戻す
-		if (inputRef.current) {
-			inputRef.current.focus();
-		}
-	};
-
-	// 選択されたタイプを削除する処理
-	const removeType = (typeName: string) => {
-		setSelectedTypes(selectedTypes.filter((type) => type !== typeName));
-	};
-
 	// キー入力時の処理（Enterキーでタイプを追加、ESCキーでサジェストを閉じる）
 	const handleKeyDown = (e: React.KeyboardEvent) => {
 		if (e.key === "Enter" && inputValue.trim() !== "") {
@@ -137,20 +292,48 @@ export default function TypeSelector({
 
 			{/* 選択されたタイプを表示 */}
 			<div className="flex flex-wrap gap-1 mb-2">
-				{selectedTypes.map((type) => (
-					<div
-						key={type}
-						className="px-2 py-1 bg-blue-100 text-blue-800 rounded-md flex items-center text-sm"
-					>
-						<span>{type}</span>
-						<button
-							onClick={() => removeType(type)}
-							className="ml-1 text-blue-500 hover:text-blue-700"
-						>
-							&times;
-						</button>
+				{selectedTypes.length > 0 && (
+					<div className="flex flex-wrap gap-1 items-center">
+						{selectedTypes.map((type, index) => (
+							<React.Fragment key={`${type.name}-${index}`}>
+								{index > 0 && (
+									<div
+										onClick={() =>
+											toggleConnection(index - 1)
+										}
+										className="px-2 py-1 bg-gray-200 text-gray-800 rounded-md cursor-pointer text-sm hover:bg-gray-300"
+									>
+										{connections[index - 1]}
+									</div>
+								)}
+								<div
+									onClick={() =>
+										toggleTypeInclusion(type.name)
+									}
+									className={`px-2 py-1 rounded-md flex items-center text-sm cursor-pointer ${
+										type.include
+											? "bg-blue-100 text-blue-800"
+											: "bg-red-100 text-red-800"
+									}`}
+								>
+									<span>
+										{type.include ? "" : "-"}
+										{type.name}
+									</span>
+									<button
+										onClick={(e) => {
+											e.stopPropagation(); // クリックイベントの伝播を停止
+											removeType(index);
+										}}
+										className="ml-1 text-gray-500 hover:text-gray-700"
+									>
+										&times;
+									</button>
+								</div>
+							</React.Fragment>
+						))}
 					</div>
-				))}
+				)}
 			</div>
 
 			{/* 入力フィールドとサジェスト */}

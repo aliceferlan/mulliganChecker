@@ -57,7 +57,7 @@ export default function SearchConsole() {
 				</div>
 
 				{/* タイプセレクタ */}
-				{/* <TypeSelector /> */}
+				<TypeSelector />
 
 				{/* オラクルテキストセレクタ */}
 				<OracleSelector />
