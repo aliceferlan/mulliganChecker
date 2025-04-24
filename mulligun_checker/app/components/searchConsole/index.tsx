@@ -10,6 +10,7 @@ import ManaSelector from "./manaSelector";
 import OracleSelector from "./oracleSelector";
 import TypeSelector from "./typeSelector";
 import { Type } from "@/app/types";
+import { cp } from "fs";
 
 function seach() {
 	// 検索用処理をここに書く
@@ -31,10 +32,22 @@ function getSetsList() {
 	];
 }
 
+function getRarityList() {
+	// レアリティリストを取得する処理をここに書く
+	// 例: APIからレアリティリストを取得する
+	return ["Common", "Uncommon", "Rare", "Mythic Rare", "Special"];
+}
+
 function getTypesList() {
 	// タイプリストを取得する処理をここに書く
 	// 例: APIからタイプリストを取得する
 	return ["Creature", "Instant", "Sorcery", "Artifact", "Enchantment"];
+}
+
+function getLayoutList() {
+	// レイアウトリストを取得する処理をここに書く
+	// 例: APIからレイアウトリストを取得する
+	return ["Normal", "Double-faced", "Token", "Plane"];
 }
 
 // 文字列配列をType型の配列に変換する関数
@@ -48,6 +61,8 @@ function convertStringsToTypes(strings: string[]): Type[] {
 export default function SearchConsole() {
 	const setsList = convertStringsToTypes(getSetsList());
 	const typeList = convertStringsToTypes(getTypesList());
+	const rarityList = convertStringsToTypes(getRarityList());
+	const layoutList = convertStringsToTypes(getLayoutList());
 
 	return (
 		<div>
@@ -60,6 +75,7 @@ export default function SearchConsole() {
 						<option value="ja">日本語</option>
 					</select>
 				</div>
+
 				{/* ソートセレクタ */}
 				<div className="search-console__sort-selector">
 					<select name="sort" id="sort">
@@ -77,17 +93,15 @@ export default function SearchConsole() {
 				</div>
 
 				{/* カラーセレクタ */}
-				<div>
-					<ManaSelector />
-				</div>
-				<div>
-					{/* オラクルセレクタ */}
-					<TextSelector id="oracle" />
-				</div>
-				<div>{/* power/tough/loyarity selector */}</div>
-				<div>
-					<CMCSelector />
-				</div>
+				<ManaSelector />
+
+				{/* オラクルセレクタ */}
+				<TextSelector id="oracle" />
+
+				{/* power/tough/loyarity selector */}
+
+				{/* CMCセレクタ */}
+				<CMCSelector />
 
 				{/* タイプセレクタ */}
 				<TypeSelector typeList={typeList} />
@@ -96,29 +110,13 @@ export default function SearchConsole() {
 				<OracleSelector />
 
 				{/* レイアウトセレクタ */}
-				<div className="search-console__button">
-					<button onClick={seach}>Search</button>
-				</div>
+				<TypeSelector typeList={layoutList} />
 
 				{/* セットセレクタ */}
-
-				<div className="search-console__input">
-					<input type="text" placeholder="Set..." />
-				</div>
 				<TypeSelector typeList={setsList} />
 
 				{/* レアリティセレクタ */}
-
-				<div className="search-console__input">
-					<select name="rearity" id="">
-						<option value="all">All</option>
-						<option value="c">Common</option>
-						<option value="u">Uncommon</option>
-						<option value="r">Rare</option>
-						<option value="m">Mythic</option>
-						<option value="s">Special</option>
-					</select>
-				</div>
+				<TypeSelector typeList={rarityList} />
 			</div>
 			{/* 検索表示用エリア */}
 			<div className="search-console__result">
