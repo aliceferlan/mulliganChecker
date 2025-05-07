@@ -1,15 +1,6 @@
 import { useEffect, useState } from "react";
+import { ManaSelection } from "@/app/types";
 
-interface ManaSelection {
-	W: number;
-	U: number;
-	B: number;
-	R: number;
-	G: number;
-	C: number;
-}
-
-// 色名とシンボル名のマッピング
 const colorNameToSymbol: Record<string, keyof ManaSelection> = {
 	white: "W",
 	blue: "U",
@@ -19,7 +10,6 @@ const colorNameToSymbol: Record<string, keyof ManaSelection> = {
 	colorless: "C",
 };
 
-// シンボル名と色名のマッピング
 const symbolToColorName: Record<keyof ManaSelection, string> = {
 	W: "white",
 	U: "blue",
@@ -29,8 +19,11 @@ const symbolToColorName: Record<keyof ManaSelection, string> = {
 	C: "colorless",
 };
 
-export default function ManaSelector() {
-	// マナカウントの状態管理
+export default function ManaSelector({
+	onChange,
+}: {
+	onChange?: (mana: ManaSelection) => void;
+}) {
 	const [selectedMana, setSelectedMana] = useState<ManaSelection>({
 		W: 0,
 		U: 0,
@@ -40,7 +33,6 @@ export default function ManaSelector() {
 		C: 0,
 	});
 
-	// 選択された色の状態管理
 	const [selectedColors, setSelectedColors] = useState<
 		Record<string, boolean>
 	>({
@@ -52,84 +44,62 @@ export default function ManaSelector() {
 		colorless: false,
 	});
 
-	// マナカウントを増減するハンドラー
 	const handleManaChange = (color: keyof ManaSelection, amount: number) => {
 		setSelectedMana((prev) => {
 			const newValue = Math.max(0, prev[color] + amount);
-
-			// マナが1以上になった場合、その色を選択状態にする
 			if (newValue > 0) {
 				const colorName = symbolToColorName[color];
-				setSelectedColors((prev) => ({
-					...prev,
-					[colorName]: true,
-				}));
+				setSelectedColors((prev) => ({ ...prev, [colorName]: true }));
 			}
-
 			return { ...prev, [color]: newValue };
 		});
 	};
 
-	// シンボルをタップして色選択を切り替えるハンドラー
 	const toggleColorBySymbol = (symbol: keyof ManaSelection) => {
 		const colorName = symbolToColorName[symbol];
-
 		setSelectedColors((prev) => {
 			const newState = !prev[colorName];
-
-			// 選択が解除される場合は、マナカウントも0にリセット
 			if (!newState) {
-				setSelectedMana((prevMana) => ({
-					...prevMana,
-					[symbol]: 0,
-				}));
+				setSelectedMana((prevMana) => ({ ...prevMana, [symbol]: 0 }));
 			}
-
-			return {
-				...prev,
-				[colorName]: newState,
-			};
+			return { ...prev, [colorName]: newState };
 		});
 	};
 
-	// 色の順番を定義（WUBRGC順）
+	useEffect(() => {
+		if (onChange) onChange(selectedMana);
+	}, [selectedMana, onChange]);
+
 	const colorOrder: (keyof ManaSelection)[] = ["W", "U", "B", "R", "G", "C"];
 
 	return (
 		<div>
-			{/* マナセレクタ コンソール部 */}
 			<div className="mb-4">
 				<h3 className="text-sm font-medium mb-2">マナシンボル:</h3>
 				<div className="flex flex-wrap gap-4">
 					{colorOrder.map((symbol) => {
 						const colorName = symbolToColorName[symbol];
 						const isSelected = selectedColors[colorName];
-
 						return (
 							<div
 								key={symbol}
 								className="flex flex-col items-center"
 							>
-								{/* 上の+ボタン */}
 								<button
 									className="bg-gray-200 hover:bg-gray-300 rounded-full w-6 h-6 flex items-center justify-center"
 									onClick={() => handleManaChange(symbol, 1)}
 								>
 									+
 								</button>
-
-								{/* マナシンボル - クリックで色選択を切り替え */}
 								<div
-									className={`w-8 h-8 my-1 relative cursor-pointer`}
+									className="w-8 h-8 my-1 relative cursor-pointer"
 									onClick={() => toggleColorBySymbol(symbol)}
 								>
 									<img
 										src={`https://svgs.scryfall.io/card-symbols/${symbol}.svg`}
-										alt={symbolToColorName[symbol]}
+										alt={colorName}
 										className="w-full h-full"
 									/>
-
-									{/* 非選択時のグレーマスク - mix-blend-modeでシンボル形状を保持 */}
 									{!isSelected && (
 										<div
 											className="absolute inset-0"
@@ -141,8 +111,6 @@ export default function ManaSelector() {
 										/>
 									)}
 								</div>
-
-								{/* 下の-ボタン */}
 								<button
 									className="bg-gray-200 hover:bg-gray-300 rounded-full w-6 h-6 flex items-center justify-center"
 									onClick={() => handleManaChange(symbol, -1)}
@@ -155,8 +123,6 @@ export default function ManaSelector() {
 					})}
 				</div>
 			</div>
-
-			{/* マナシンボル表示部 */}
 			<div className="mb-4">
 				<h3 className="text-sm font-medium mb-2">選択したマナ:</h3>
 				<div className="flex flex-wrap">

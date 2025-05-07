@@ -1,4 +1,4 @@
-import { useState, FormEvent, useRef } from "react";
+import { useState, FormEvent, useRef, useEffect } from "react";
 
 // テキストデータの型定義
 type OracleText = {
@@ -12,7 +12,12 @@ type OracleState = {
 	operator: "and" | "or";
 };
 
-export default function OracleSelector() {
+// OracleSelectorのプロパティ型定義
+interface OracleSelectorProps {
+	onChange: (query: string) => void;
+}
+
+export default function OracleSelector({ onChange }: OracleSelectorProps) {
 	// 状態管理
 	const [state, setState] = useState<OracleState>({
 		texts: [],
@@ -20,6 +25,21 @@ export default function OracleSelector() {
 	});
 	const [inputValue, setInputValue] = useState("");
 	const inputRef = useRef<HTMLInputElement>(null);
+
+	// stateが変更されたときにonChangeを呼び出す
+	useEffect(() => {
+		const queryParts = state.texts.map((item) => {
+			return item.exclude ? `NOT "${item.text}"` : `"${item.text}"`;
+		});
+		if (queryParts.length === 0) {
+			onChange("");
+			return;
+		}
+		const queryString = queryParts.join(
+			` ${state.operator.toUpperCase()} `
+		);
+		onChange(queryString);
+	}, [state, onChange]);
 
 	// フォーム送信時の処理
 	const handleSubmit = (e: FormEvent) => {

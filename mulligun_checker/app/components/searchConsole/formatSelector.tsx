@@ -11,6 +11,11 @@ interface FormatWithStatus extends Type {
 	status: FormatStatus;
 }
 
+// Props for FormatSelector
+interface FormatSelectorProps {
+	onChange: (formats: string[]) => void;
+}
+
 function FormatComponent({
 	format,
 	onStatusChange,
@@ -52,7 +57,7 @@ function FormatComponent({
 	);
 }
 
-export default function FormatSelector() {
+export default function FormatSelector({ onChange }: FormatSelectorProps) {
 	const [selectedFormats, setSelectedFormats] = useState<FormatWithStatus[]>(
 		[]
 	);
@@ -112,6 +117,12 @@ export default function FormatSelector() {
 			// 新しいフォーマットの場合は追加
 			return [...prevFormats, { ...format, status }];
 		});
+
+		// Notify parent component of changes
+		const currentSelectedFormats = selectedFormats
+			.filter((f) => f.status !== "none") // 'none' 状態のフォーマットを除外
+			.map((f) => `${f.name}:${f.status}`);
+		onChange(currentSelectedFormats);
 	};
 
 	if (isLoading) return <div>Loading formats...</div>;

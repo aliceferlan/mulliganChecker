@@ -1,6 +1,11 @@
-import { useState } from "react";
+// colorSelector.tsx
+import { useState, useEffect } from "react";
 
-export default function Colors() {
+export default function Colors({
+	onChange,
+}: {
+	onChange?: (colors: Record<string, boolean>) => void;
+}) {
 	const colorList = {
 		white: "https://svgs.scryfall.io/card-symbols/W.svg",
 		blue: "https://svgs.scryfall.io/card-symbols/U.svg",
@@ -10,7 +15,6 @@ export default function Colors() {
 		colorless: "https://svgs.scryfall.io/card-symbols/C.svg",
 	};
 
-	// 選択された色を管理する状態
 	const [selectedColors, setSelectedColors] = useState<
 		Record<string, boolean>
 	>({
@@ -23,11 +27,19 @@ export default function Colors() {
 	});
 
 	const toggleColor = (colorName: string) => {
-		setSelectedColors((prev) => ({
-			...prev,
-			[colorName]: !prev[colorName],
-		}));
+		setSelectedColors((prev) => {
+			const updated = {
+				...prev,
+				[colorName]: !prev[colorName],
+			};
+			if (onChange) onChange(updated);
+			return updated;
+		});
 	};
+
+	useEffect(() => {
+		if (onChange) onChange(selectedColors);
+	}, []);
 
 	return (
 		<div className="colors-container flex">
@@ -37,14 +49,7 @@ export default function Colors() {
 					className={`color-circle ${
 						selectedColors[colorName] ? "active" : ""
 					}`}
-					onClick={() => {
-						toggleColor(colorName);
-						console.log(
-							`Selected color: ${colorName}, Status: ${!selectedColors[
-								colorName
-							]}`
-						);
-					}}
+					onClick={() => toggleColor(colorName)}
 					style={{
 						width: "30px",
 						height: "30px",
@@ -59,7 +64,6 @@ export default function Colors() {
 						overflow: "hidden",
 					}}
 				>
-					{/* マナシンボル画像 */}
 					<img
 						src={imageUrl}
 						alt={colorName}
@@ -69,8 +73,6 @@ export default function Colors() {
 							objectFit: "cover",
 						}}
 					/>
-
-					{/* 非アクティブ時のグレーのマスク */}
 					{!selectedColors[colorName] && (
 						<div
 							style={{

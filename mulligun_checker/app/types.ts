@@ -49,6 +49,15 @@ export type CardNameList = {
     }[];
 };
 
+export interface ManaSelection {
+    W: number;
+    U: number;
+    B: number;
+    R: number;
+    G: number;
+    C: number;
+}
+
 export interface SearchQuery {
     name?: string; // カード名
     set?: string; // セット名
