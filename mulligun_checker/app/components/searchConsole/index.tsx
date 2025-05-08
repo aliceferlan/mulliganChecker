@@ -11,6 +11,13 @@ import TypeSelector from "./typeSelector";
 import { Type, ManaSelection } from "@/app/types";
 import { useState, FormEvent, useRef, useCallback, useMemo } from "react"; // useCallback, useMemo をインポート
 
+// Define the new expected argument type for handleManaChange
+interface ManaChangePayload {
+	selectionType: string; // e.g., "Exactly", "AtLeast", "Commander"
+	manaCounts: ManaSelection;
+	highlightedSymbols: string[];
+}
+
 function search() {
 	// 検索用処理をここに書く
 	console.log("Searching...");
@@ -69,7 +76,7 @@ export default function SearchConsole() {
 		language: "en",
 		cmc: [],
 		manaSymbols: { W: 0, U: 0, B: 0, R: 0, G: 0, C: 0 },
-		colors: { selection: "", symbols: [] },
+		colors: { selection: "", symbols: [] }, // This will be updated by the new handleManaChange
 		formats: [],
 		types: "",
 		oracle: "",
@@ -79,9 +86,24 @@ export default function SearchConsole() {
 		// fetch などで API に投げてもよい
 	};
 
-	const handleManaChange = useCallback((manaSymbols: ManaSelection) => {
-		setSearchParams((prev) => ({ ...prev, manaSymbols }));
-	}, []); // setSearchParams is stable, so [] is fine
+	const handleManaChange = useCallback((payload: ManaChangePayload) => {
+		const { selectionType, manaCounts, highlightedSymbols } = payload;
+
+		// Determine active symbols based on highlight status first,
+		// then fall back to manaCounts if no symbols are highlighted (or keep as is based on desired logic)
+		// For this request, highlightedSymbols take precedence for the `colors.symbols` list.
+		const symbolsForColors = highlightedSymbols;
+
+		setSearchParams((prev) => ({
+			...prev,
+			manaSymbols: manaCounts, // Keep raw counts in manaSymbols
+			colors: {
+				// Update colors with selection type and active symbols
+				selection: selectionType,
+				symbols: symbolsForColors, // Use the new list derived from highlighted state
+			},
+		}));
+	}, []); // setSearchParams is stable
 
 	const handleColorChange = useCallback(
 		(colors: { selection: string; symbols: string[] }) => {
@@ -136,7 +158,7 @@ export default function SearchConsole() {
 				</div>
 
 				{/* カラーセレクタ */}
-				<div>
+				<div className="search-console__color-selector w-100">
 					<ManaSelector
 						onChange={handleManaChange} // メモ化された関数を使用
 					/>
