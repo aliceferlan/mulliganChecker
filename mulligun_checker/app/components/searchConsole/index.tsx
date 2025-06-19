@@ -64,8 +64,8 @@ export default function SearchConsole() {
 		language: string;
 		cmc: any[]; // 後で正しい型にしてOK
 		manaSymbols: ManaSelection;
-		colors: { selection: string; symbols: string[] }; // 例: { selection: "", ["W", "U"] }
-		formats: any[]; // 同上
+		colors: { selection: string; symbols: string[] };
+		formats: any[];
 		types: string;
 		oracle: string;
 	}>({
@@ -81,9 +81,28 @@ export default function SearchConsole() {
 		types: "",
 		oracle: "",
 	});
-	const handleSearch = () => {
-		console.log("Search Conditions:", searchParams);
-		// fetch などで API に投げてもよい
+	// 検索結果リストのstateを追加
+	const [searchResults, setSearchResults] = useState<any[]>([]);
+	const [loading, setLoading] = useState(false);
+	const [error, setError] = useState<string | null>(null);
+
+	const handleSearch = async () => {
+		setLoading(true);
+		setError(null);
+		try {
+			const response = await fetch("https://migawari.com/search", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify(searchParams),
+			});
+			if (!response.ok) throw new Error("検索APIエラー");
+			const data = await response.json();
+			setSearchResults(data.cards || []);
+		} catch (e: any) {
+			setError(e.message || "検索に失敗しました");
+		} finally {
+			setLoading(false);
+		}
 	};
 
 	const handleManaChange = useCallback((payload: ManaChangePayload) => {
@@ -205,9 +224,49 @@ export default function SearchConsole() {
 			</div>
 			{/* 検索表示用エリア */}
 			<div className="search-console__result">
-				{/* 検索結果を表示する場所 */}
-				<p>Search results will be displayed here.</p>
-				{/* 検索結果を表示する場所 */}
+				{loading && <p>Loading...</p>}
+				{error && <p style={{ color: "red" }}>{error}</p>}
+				{!loading && !error && searchResults.length === 0 && (
+					<p>Search results will be displayed here.</p>
+				)}
+				{searchResults.length > 0 && (
+					<div className="card-list">
+						{searchResults.map((card) => (
+							<div
+								key={card.id}
+								className="card-item"
+								style={{
+									border: "1px solid #ccc",
+									margin: 8,
+									padding: 8,
+								}}
+							>
+								<strong>{card.name}</strong>{" "}
+								<span>({card.mana_cost})</span>
+								<br />
+								<span>{card.type_line}</span>
+								<br />
+								{card.oracle_text && (
+									<span style={{ fontSize: "0.9em" }}>
+										{card.oracle_text}
+									</span>
+								)}
+								<div
+									style={{ fontSize: "0.8em", color: "#666" }}
+								>
+									{card.colors && card.colors.length > 0 && (
+										<span>
+											Colors: {card.colors.join(", ")}
+										</span>
+									)}
+									{card.rarity && (
+										<span> | Rarity: {card.rarity}</span>
+									)}
+								</div>
+							</div>
+						))}
+					</div>
+				)}
 			</div>
 		</div>
 	);

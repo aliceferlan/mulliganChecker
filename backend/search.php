@@ -2,39 +2,36 @@
 // filepath: search_cards.php
 
 
-// CORSヘッダーを設定
-header('Access-Control-Allow-Origin: *');  // すべてのオリジンからのアクセスを許可
+// CORSヘッダーを必ず返す
+header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: POST, GET, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type');
 
-// OPTIONSリクエスト（プリフライトリクエスト）の場合は早期に終了
+// OPTIONSリクエスト（プリフライトリクエスト）の場合は200で即終了
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    http_response_code(200);
     exit(0);
     }
 
 // 通常のレスポンスヘッダー
 header('Content-Type: application/json');
 
-// 以下、既存のコード
+// GETリクエストの場合はAPIの使い方を返す
+if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+    echo json_encode(getApiUsage(), JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
+    exit;
+    }
 
 // 検索条件のJSONを取得
 $requestBody = file_get_contents('php://input');
 $searchCriteria = json_decode($requestBody, true);
 
-// var_dump($requestBody);
-// var_dump($searchCriteria); // デバッグ用
-
-// if (json_last_error() !== JSON_ERROR_NONE) {
-//     http_response_code(400);
-//     echo json_encode(['error' => '不正なJSON形式です: ' . json_last_error_msg()]);
-//     exit;
-//     }
-
-// // GETリクエストの場合は使用方法を表示
-// if ($_SERVER['REQUEST_METHOD'] === 'GET') {
-//     echo json_encode(getApiUsage(), JSON_PRETTY_PRINT);
-//     exit;
-//     }
+// POST以外や不正なJSONの場合はエラー
+if ($_SERVER['REQUEST_METHOD'] !== 'POST' || !is_array($searchCriteria)) {
+    http_response_code(400);
+    echo json_encode(['error' => '検索条件が不正です']);
+    exit;
+    }
 
 // データベース設定の読み込み
 $configFile = __DIR__ . '/../../config/database.php';
@@ -398,18 +395,6 @@ function searchCards($pdo, $criteria)
 
     while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
         $cardId = $row['id'];
-
-        var_dump($row);
-
-        // 既に同じカードが結果にある場合は追加情報だけ追加
-        // if (isset($cardIndexMap[$cardId])) {
-        //     $index = $cardIndexMap[$cardId];
-        //     if ($includeImages && isset($row['uri']) && isset($row['image_type'])) {
-        //         $results[$index]['images'][$row['image_type']] = $row['uri'];
-        //         }
-        //     continue;
-        //     }
-
         // 新しいカードを結果に追加
         $card = [
             'id' => $row['id'],
@@ -426,30 +411,14 @@ function searchCards($pdo, $criteria)
             'rarity' => $row['rarity'],
             'layout' => $row['layout'],
         ];
-
         // 言語情報があれば追加
         if (isset($row['lang']) && $row['lang']) {
             $card['lang'] = $row['lang'];
             }
-
         // キーワードがある場合は追加
         if (isset($row['keywords']) && $row['keywords']) {
             $card['keywords'] = explode(',', $row['keywords']);
             }
-
-        // // 画像がある場合は追加
-        // if ($includeImages && isset($row['uri']) && isset($row['image_type'])) {
-        //     $card['images'] = [
-        //         $row['image_type'] => $row['uri']
-        //     ];
-        //     }
-
-        // // セット情報がある場合は追加
-        // if ($includeSets && isset($row['set_code'])) {
-        //     $card['set'] = $row['set_code'];
-        //     $card['set_name'] = $row['set_name'];
-        //     }
-
         $results[] = $card;
         $cardIndexMap[$cardId] = count($results) - 1;
         }
@@ -579,4 +548,5 @@ function getApiUsage()
         ]
     ];
     }
+
 
