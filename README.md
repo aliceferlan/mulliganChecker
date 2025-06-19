@@ -1,4 +1,4 @@
-muligun checker
+muligun checker / MTG Wiki
 
 やること
 
@@ -28,3 +28,7 @@ muligun checker
 
 1. color, value, all value, type, p/t
 2. text oracle, flavor, name,
+
+## Wiki
+
+`mulligun_checker` ディレクトリには簡易的な MTG カード Wiki を追加しました。`npm run dev` で起動後、`/login` からログインし `/wiki` で記事の作成・編集・コメントが行えます。
